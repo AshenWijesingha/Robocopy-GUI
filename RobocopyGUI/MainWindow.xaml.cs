@@ -536,7 +536,7 @@ namespace RobocopyGUI
                 };
             }
 
-            return new CopyOptions
+            var options = new CopyOptions
             {
                 SourcePath = SourcePathTextBox.Text,
                 DestinationPath = DestinationPathTextBox.Text,
@@ -551,6 +551,36 @@ namespace RobocopyGUI
                 VerboseOutput = VerboseOutputCheckBox.IsChecked ?? false,
                 CustomParameters = CustomParametersTextBox.Text
             };
+
+            // Parse file exclusion patterns
+            if (!string.IsNullOrWhiteSpace(ExcludeFilesTextBox.Text))
+            {
+                var patterns = ExcludeFilesTextBox.Text.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var pattern in patterns)
+                {
+                    var trimmed = pattern.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                    {
+                        options.ExcludePatterns.Add(trimmed);
+                    }
+                }
+            }
+
+            // Parse directory exclusion patterns
+            if (!string.IsNullOrWhiteSpace(ExcludeDirectoriesTextBox.Text))
+            {
+                var directories = ExcludeDirectoriesTextBox.Text.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var dir in directories)
+                {
+                    var trimmed = dir.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                    {
+                        options.ExcludeDirectories.Add(trimmed);
+                    }
+                }
+            }
+
+            return options;
         }
 
         /// <summary>
@@ -584,6 +614,10 @@ namespace RobocopyGUI
             RestartableModeCheckBox.IsChecked = options.RestartableMode;
             VerboseOutputCheckBox.IsChecked = options.VerboseOutput;
             CustomParametersTextBox.Text = options.CustomParameters;
+
+            // Restore exclusion patterns
+            ExcludeFilesTextBox.Text = string.Join("; ", options.ExcludePatterns);
+            ExcludeDirectoriesTextBox.Text = string.Join("; ", options.ExcludeDirectories);
 
             UpdateCommandPreview();
         }

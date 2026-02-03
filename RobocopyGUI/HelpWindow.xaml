@@ -337,6 +337,33 @@
                                 Shows detailed information about each file being processed. Helpful for troubleshooting but may slow down operations slightly.
                             </TextBlock>
 
+                            <TextBlock Text="🚫 Exclude Files (patterns)" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
+                                Specify file patterns to exclude from copying. Patterns are separated by semicolons.
+                                
+                                Examples:
+                                • *.tmp - Excludes all temporary files
+                                • *.log - Excludes all log files
+                                • Thumbs.db - Excludes Windows thumbnail cache files
+                                • desktop.ini - Excludes Windows folder configuration files
+                                
+                                You can combine multiple patterns: *.tmp; *.log; Thumbs.db
+                            </TextBlock>
+
+                            <TextBlock Text="🚫 Exclude Directories" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
+                                Specify directory names to exclude from copying. Names are separated by semicolons.
+                                
+                                Common directories to exclude:
+                                • .git - Git version control folder
+                                • node_modules - Node.js dependencies
+                                • bin; obj - Build output folders
+                                • __pycache__ - Python cache
+                                • .vs - Visual Studio settings
+                                
+                                Example: .git; node_modules; bin; obj
+                            </TextBlock>
+
                             <TextBlock Text="Custom Parameters" FontWeight="SemiBold" Margin="0,0,0,5"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,0,0,15">
                                 Add any additional Robocopy command-line parameters not covered by the GUI options. For advanced users who know Robocopy parameters.

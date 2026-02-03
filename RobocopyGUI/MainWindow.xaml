@@ -261,10 +261,30 @@
                                           Margin="0,0,0,10"
                                           ToolTip="Shows detailed information for each file. Useful for troubleshooting."/>
 
-                                <Label Content="Custom Parameters" Margin="0,10,0,0" ToolTip="Additional Robocopy command-line parameters"/>
+                                <!-- File Exclusion Patterns -->
+                                <Label Content="🚫 Exclude Files (patterns)" Margin="0,15,0,0" ToolTip="File patterns to exclude from copy"/>
+                                <TextBox x:Name="ExcludeFilesTextBox" 
+                                         Text="" 
+                                         ToolTip="Enter file patterns to exclude, separated by semicolons. Examples: *.tmp; *.log; Thumbs.db; desktop.ini"/>
+                                <TextBlock Text="Examples: *.tmp; *.log; Thumbs.db; desktop.ini" 
+                                           Foreground="{StaticResource TextSecondaryColor}" 
+                                           FontSize="11" 
+                                           Margin="0,3,0,0"/>
+
+                                <!-- Directory Exclusion -->
+                                <Label Content="🚫 Exclude Directories" Margin="0,10,0,0" ToolTip="Directory names to exclude from copy"/>
+                                <TextBox x:Name="ExcludeDirectoriesTextBox" 
+                                         Text="" 
+                                         ToolTip="Enter directory names to exclude, separated by semicolons. Examples: .git; node_modules; bin; obj"/>
+                                <TextBlock Text="Examples: .git; node_modules; bin; obj; __pycache__" 
+                                           Foreground="{StaticResource TextSecondaryColor}" 
+                                           FontSize="11" 
+                                           Margin="0,3,0,0"/>
+
+                                <Label Content="Custom Parameters" Margin="0,15,0,0" ToolTip="Additional Robocopy command-line parameters"/>
                                 <TextBox x:Name="CustomParametersTextBox" 
                                          Text="" 
-                                         ToolTip="Enter additional Robocopy parameters here (for advanced users). Example: /XF *.tmp /XD Temp"/>
+                                         ToolTip="Enter additional Robocopy parameters here (for advanced users)."/>
                             </StackPanel>
                         </Expander>
                     </Border>
