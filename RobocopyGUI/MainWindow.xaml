@@ -1,0 +1,347 @@
+<Window x:Class="RobocopyGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Robocopy GUI" 
+        Height="800" 
+        Width="1000"
+        MinHeight="600"
+        MinWidth="800"
+        Background="{StaticResource BackgroundColor}"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Robocopy GUI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+            <TextBlock Text="A modern interface for Windows Robocopy utility" Foreground="{StaticResource TextSecondaryColor}" FontSize="14"/>
+        </StackPanel>
+
+        <!-- Main Content -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="350"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - Configuration -->
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Margin="0,0,15,0">
+                <StackPanel>
+                    <!-- Source and Destination -->
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="📁 Folders" Style="{StaticResource SectionHeader}"/>
+                            
+                            <!-- Source Path -->
+                            <Label Content="Source Folder"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="SourcePathTextBox" 
+                                         Grid.Column="0" 
+                                         IsReadOnly="True"
+                                         AllowDrop="True"
+                                         PreviewDragOver="TextBox_PreviewDragOver"
+                                         Drop="SourcePath_Drop"/>
+                                <Button Grid.Column="1" 
+                                        Content="Browse" 
+                                        Style="{StaticResource SecondaryButton}" 
+                                        Margin="10,0,0,0"
+                                        Click="BrowseSource_Click"/>
+                            </Grid>
+
+                            <!-- Destination Path -->
+                            <Label Content="Destination Folder"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DestinationPathTextBox" 
+                                         Grid.Column="0" 
+                                         IsReadOnly="True"
+                                         AllowDrop="True"
+                                         PreviewDragOver="TextBox_PreviewDragOver"
+                                         Drop="DestinationPath_Drop"/>
+                                <Button Grid.Column="1" 
+                                        Content="Browse" 
+                                        Style="{StaticResource SecondaryButton}" 
+                                        Margin="10,0,0,0"
+                                        Click="BrowseDestination_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Copy Mode -->
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="⚙️ Copy Mode" Style="{StaticResource SectionHeader}"/>
+                            
+                            <Label Content="Select a preset mode"/>
+                            <ComboBox x:Name="CopyModeComboBox" 
+                                      SelectionChanged="CopyModeComboBox_SelectionChanged"
+                                      Margin="0,0,0,15">
+                                <ComboBoxItem Content="Backup - Copy new and changed files" Tag="Backup" IsSelected="True"/>
+                                <ComboBoxItem Content="Mirror - Exact copy (deletes extras)" Tag="Mirror"/>
+                                <ComboBoxItem Content="Sync - Synchronize folders" Tag="Sync"/>
+                                <ComboBoxItem Content="Move - Move files (delete from source)" Tag="Move"/>
+                            </ComboBox>
+
+                            <!-- Mode Warning -->
+                            <Border x:Name="ModeWarningBorder" 
+                                    Background="#FFF3E0" 
+                                    BorderBrush="{StaticResource WarningColor}" 
+                                    BorderThickness="1" 
+                                    CornerRadius="5" 
+                                    Padding="10"
+                                    Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚠️" FontSize="16" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="ModeWarningText" 
+                                               TextWrapping="Wrap" 
+                                               Foreground="#E65100"
+                                               MaxWidth="400"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Performance Settings -->
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="🚀 Performance" Style="{StaticResource SectionHeader}"/>
+                            
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Label Content="Threads (1-128)"/>
+                                    <TextBox x:Name="ThreadCountTextBox" Text="8"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="5,0,5,0">
+                                    <Label Content="Retry Count"/>
+                                    <TextBox x:Name="RetryCountTextBox" Text="3"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                                    <Label Content="Wait Time (sec)"/>
+                                    <TextBox x:Name="RetryWaitTextBox" Text="5"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Thread count suggestion -->
+                            <TextBlock Text="💡 Tip: Use 32-64 threads for small files, 1-4 for large files" 
+                                       Foreground="{StaticResource TextSecondaryColor}" 
+                                       FontSize="12" 
+                                       Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Advanced Options -->
+                    <Border Style="{StaticResource CardBorder}">
+                        <Expander Header="Advanced Options" IsExpanded="False">
+                            <StackPanel Margin="0,15,0,0">
+                                <CheckBox x:Name="CopySubdirectoriesCheckBox" 
+                                          Content="Copy subdirectories" 
+                                          IsChecked="True" 
+                                          Margin="0,0,0,10"/>
+                                <CheckBox x:Name="IncludeEmptyDirsCheckBox" 
+                                          Content="Include empty directories" 
+                                          IsChecked="True" 
+                                          Margin="0,0,0,10"/>
+                                <CheckBox x:Name="CopyAttributesCheckBox" 
+                                          Content="Copy file attributes" 
+                                          IsChecked="True" 
+                                          Margin="0,0,0,10"/>
+                                <CheckBox x:Name="RestartableModeCheckBox" 
+                                          Content="Restartable mode (for interrupted transfers)" 
+                                          Margin="0,0,0,10"/>
+                                <CheckBox x:Name="VerboseOutputCheckBox" 
+                                          Content="Verbose output" 
+                                          Margin="0,0,0,10"/>
+
+                                <Label Content="Custom Parameters" Margin="0,10,0,0"/>
+                                <TextBox x:Name="CustomParametersTextBox" 
+                                         Text="" 
+                                         ToolTip="Add additional Robocopy parameters"/>
+                            </StackPanel>
+                        </Expander>
+                    </Border>
+
+                    <!-- Command Preview -->
+                    <Border Style="{StaticResource CardBorder}">
+                        <StackPanel>
+                            <TextBlock Text="📋 Command Preview" Style="{StaticResource SectionHeader}"/>
+                            <Border Background="#ECEFF1" CornerRadius="5" Padding="10">
+                                <TextBox x:Name="CommandPreviewTextBox" 
+                                         IsReadOnly="True" 
+                                         TextWrapping="Wrap" 
+                                         Background="Transparent"
+                                         BorderThickness="0"
+                                         FontFamily="Consolas"
+                                         FontSize="12"
+                                         Foreground="#37474F"/>
+                            </Border>
+                            <Button Content="Copy Command" 
+                                    Style="{StaticResource SecondaryButton}" 
+                                    HorizontalAlignment="Right"
+                                    Margin="0,10,0,0"
+                                    Click="CopyCommand_Click"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right Panel - Log and Status -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Status -->
+                <Border Grid.Row="0" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="📊 Status" Style="{StaticResource SectionHeader}"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Ellipse x:Name="StatusIndicator" 
+                                     Width="12" 
+                                     Height="12" 
+                                     Fill="#9E9E9E"
+                                     Margin="0,0,10,0"
+                                     VerticalAlignment="Center"/>
+                            <TextBlock x:Name="StatusText" 
+                                       Grid.Column="1" 
+                                       Text="Ready" 
+                                       VerticalAlignment="Center"
+                                       FontWeight="SemiBold"/>
+                        </Grid>
+
+                        <ProgressBar x:Name="CopyProgressBar" 
+                                     Height="10" 
+                                     Margin="0,15,0,0"
+                                     Value="0"
+                                     Maximum="100"/>
+
+                        <TextBlock x:Name="ProgressText" 
+                                   Text="" 
+                                   Margin="0,5,0,0"
+                                   FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryColor}"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Log Viewer -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,0,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <TextBlock Text="📝 Log Output" Style="{StaticResource SectionHeader}"/>
+                            <Button Content="Clear" 
+                                    Style="{StaticResource SecondaryButton}" 
+                                    HorizontalAlignment="Right"
+                                    Padding="10,5"
+                                    Click="ClearLog_Click"/>
+                        </Grid>
+
+                        <Border Grid.Row="1" Background="#263238" CornerRadius="5">
+                            <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
+                                <TextBox x:Name="LogTextBox" 
+                                         IsReadOnly="True" 
+                                         TextWrapping="Wrap"
+                                         Background="Transparent"
+                                         Foreground="#B0BEC5"
+                                         BorderThickness="0"
+                                         FontFamily="Consolas"
+                                         FontSize="12"
+                                         Padding="10"
+                                         VerticalScrollBarVisibility="Disabled"/>
+                            </ScrollViewer>
+                        </Border>
+
+                        <Button Grid.Row="2" 
+                                Content="Export Log" 
+                                Style="{StaticResource SecondaryButton}" 
+                                HorizontalAlignment="Right"
+                                Margin="0,10,0,0"
+                                Click="ExportLog_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Profile Actions -->
+                <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,10,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Grid.Column="0" 
+                                Content="Save Profile" 
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="0,0,5,0"
+                                Click="SaveProfile_Click"/>
+                        <Button Grid.Column="1" 
+                                Content="Load Profile" 
+                                Style="{StaticResource SecondaryButton}"
+                                Margin="5,0,0,0"
+                                Click="LoadProfile_Click"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- Bottom Actions -->
+        <Grid Grid.Row="2" Margin="0,20,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="BottomStatusText" 
+                       Grid.Column="0" 
+                       VerticalAlignment="Center" 
+                       Foreground="{StaticResource TextSecondaryColor}"/>
+
+            <Button x:Name="StopButton"
+                    Grid.Column="1" 
+                    Content="Stop" 
+                    Style="{StaticResource DangerButton}"
+                    Width="120"
+                    Margin="0,0,15,0"
+                    IsEnabled="False"
+                    Click="StopButton_Click"/>
+
+            <Button x:Name="StartButton"
+                    Grid.Column="2" 
+                    Content="Start Copy" 
+                    Style="{StaticResource PrimaryButton}"
+                    Width="150"
+                    Click="StartButton_Click"/>
+        </Grid>
+    </Grid>
+</Window>
