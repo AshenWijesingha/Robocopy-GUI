@@ -21,8 +21,8 @@ This guide provides detailed instructions for building and deploying the Robocop
      * .NET desktop development
      * Windows Presentation Foundation (WPF)
 
-2. **.NET 6.0 SDK** (or later)
-   - Download: https://dotnet.microsoft.com/download/dotnet/6.0
+2. **.NET 8.0 SDK** (or later)
+   - Download: https://dotnet.microsoft.com/download/dotnet/8.0
    - Verify installation:
      ```bash
      dotnet --version
@@ -104,52 +104,84 @@ dotnet run --project RobocopyGUI\RobocopyGUI.csproj
 ### Build Output Locations
 
 After building, the executable will be in:
-- **Debug**: `RobocopyGUI\bin\Debug\net6.0-windows\RobocopyGUI.exe`
-- **Release**: `RobocopyGUI\bin\Release\net6.0-windows\RobocopyGUI.exe`
+- **Debug**: `RobocopyGUI\bin\Debug\net8.0-windows\RobocopyGUI.exe`
+- **Release**: `RobocopyGUI\bin\Release\net8.0-windows\RobocopyGUI.exe`
 
 ## Creating a Standalone Executable
 
-### Method 1: Framework-Dependent (Smaller Size)
+> **Important:** Before publishing, ensure no previous instances of the application are running 
+> and the publish output folder is not locked by any process (antivirus, Windows Explorer, etc.).
 
-This requires .NET 6.0 Runtime to be installed on target machine.
+### Prerequisites for Single-File Publishing
+
+The project is pre-configured with single-file publishing settings in `RobocopyGUI.csproj`:
+- `PublishSingleFile=true`
+- `SelfContained=true`
+- `IncludeNativeLibrariesForSelfExtract=true`
+- `EnableCompressionInSingleFile=true`
+
+### Method 1: Simple Publish (Recommended)
+
+Since the project is pre-configured with single-file publishing settings, you can simply run:
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained false
+# Clean any previous build artifacts first
+dotnet clean -c Release
+
+# Publish with default settings (single file, self-contained, win-x64)
+dotnet publish -c Release -r win-x64
 ```
 
-Output: `RobocopyGUI\bin\Release\net6.0-windows\win-x64\publish\`
+Output: `RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish\RobocopyGUI.exe`
+
+### Method 2: Framework-Dependent (Smaller Size)
+
+This requires .NET 8.0 Runtime to be installed on target machine.
+
+```bash
+dotnet clean -c Release
+dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false
+```
+
+Output: `RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish\`
 
 **Pros:**
 - Smaller file size (~1-2 MB)
 - Faster build time
 
 **Cons:**
-- Requires .NET 6.0 Runtime on target machine
+- Requires .NET 8.0 Runtime on target machine
 
-### Method 2: Self-Contained (Larger Size)
+### Method 3: Self-Contained Single File (Larger Size)
 
 Includes .NET Runtime - no installation required on target machine.
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+# Clean first to avoid "Access Denied" errors
+dotnet clean -c Release
+
+# Publish self-contained single file
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
-Output: `RobocopyGUI\bin\Release\net6.0-windows\win-x64\publish\RobocopyGUI.exe`
+Output: `RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish\RobocopyGUI.exe`
 
 **Pros:**
 - No dependencies required
 - Works on any Windows 10+ machine
+- Single executable file
 
 **Cons:**
 - Larger file size (~70-80 MB)
 - Longer build time
 
-### Method 3: Trimmed Self-Contained (Optimized)
+### Method 4: Trimmed Self-Contained (Optimized)
 
 Removes unused code for smaller size.
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true
+dotnet clean -c Release
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 **Pros:**
@@ -162,20 +194,65 @@ dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=
 
 ### Publish for Different Architectures
 
-**64-bit Windows:**
+**64-bit Windows (default):**
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+dotnet clean -c Release
+dotnet publish -c Release -r win-x64
 ```
 
 **32-bit Windows:**
 ```bash
-dotnet publish -c Release -r win-x86 --self-contained true -p:PublishSingleFile=true
+dotnet clean -c Release
+dotnet publish -c Release -r win-x86
 ```
 
 **ARM64 Windows:**
 ```bash
-dotnet publish -c Release -r win-arm64 --self-contained true -p:PublishSingleFile=true
+dotnet clean -c Release
+dotnet publish -c Release -r win-arm64
 ```
+
+### Troubleshooting Publish Errors
+
+#### "Access to the path is denied" Error
+
+This error occurs when the output executable is locked. Solutions:
+
+1. **Close all instances of the application** before publishing
+2. **Run `dotnet clean` before publishing:**
+   ```bash
+   dotnet clean -c Release
+   dotnet publish -c Release
+   ```
+3. **Delete the publish folder manually:**
+   ```bash
+   # Windows CMD
+   rmdir /s /q RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish
+   
+   # PowerShell
+   Remove-Item -Recurse -Force RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish
+   ```
+4. **Temporarily disable antivirus** software that may be scanning the output
+5. **Close Windows Explorer** if it has the publish folder open
+6. **Restart Visual Studio** if it has locks on files
+
+#### "GenerateBundle task failed" Error
+
+This is typically caused by the same file locking issues. Follow the steps above.
+
+#### "Unexpected error occurred" Error
+
+1. Check the detailed log files in:
+   - `RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish\`
+   - `%TEMP%\` folder for MSBuild logs
+2. Run with verbose logging:
+   ```bash
+   dotnet publish -c Release -v detailed > build.log 2>&1
+   ```
+3. Ensure you have the latest .NET SDK installed:
+   ```bash
+   dotnet --version
+   ```
 
 ## Creating an Installer
 
@@ -206,7 +283,7 @@ DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\RobocopyGUI.exe
 
 [Files]
-Source: "RobocopyGUI\bin\Release\net6.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "RobocopyGUI\bin\Release\net8.0-windows\win-x64\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\Robocopy GUI"; Filename: "{app}\RobocopyGUI.exe"
@@ -341,8 +418,8 @@ dotnet test /p:CollectCoverage=true
 #### Error: SDK not found
 **Solution:**
 ```bash
-# Install .NET 6.0 SDK
-winget install Microsoft.DotNet.SDK.6
+# Install .NET 8.0 SDK
+winget install Microsoft.DotNet.SDK.8
 
 # Verify installation
 dotnet --version
@@ -367,7 +444,7 @@ dotnet restore
 
 #### Error: Application won't start
 **Check:**
-1. .NET 6.0 Runtime installed?
+1. .NET 8.0 Runtime installed (if using framework-dependent build)?
 2. Windows 10 version 1809 or later?
 3. All dependencies included in publish?
 
