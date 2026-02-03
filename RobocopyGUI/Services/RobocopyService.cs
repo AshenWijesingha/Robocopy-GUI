@@ -301,26 +301,37 @@ namespace RobocopyGUI.Services
         }
 
         /// <summary>
+        /// Parses a statistics line from Robocopy output into parts.
+        /// </summary>
+        /// <param name="line">The line to parse.</param>
+        /// <param name="prefix">The prefix to remove (e.g., "Files :", "Dirs :", "Bytes :").</param>
+        /// <returns>An array of parsed parts, or empty array on failure.</returns>
+        private static string[] ParseStatisticsLine(string line, string prefix)
+        {
+            try
+            {
+                return line.Replace(prefix, "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            }
+            catch
+            {
+                return Array.Empty<string>();
+            }
+        }
+
+        /// <summary>
         /// Parses the Files line from Robocopy output.
         /// </summary>
         private void ParseFileLine(string line, CopyResult result)
         {
-            try
+            // Format: "Files :    10    5    3    2    0    0"
+            // Columns: Total, Copied, Skipped, Mismatch, Failed, Extras
+            var parts = ParseStatisticsLine(line, "Files :");
+            if (parts.Length >= 5)
             {
-                // Format: "Files :    10    5    3    2    0    0"
-                // Columns: Total, Copied, Skipped, Mismatch, Failed, Extras
-                var parts = line.Replace("Files :", "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 5)
-                {
-                    result.TotalFiles = long.TryParse(parts[0], out var total) ? total : 0;
-                    result.FilesCopied = long.TryParse(parts[1], out var copied) ? copied : 0;
-                    result.FilesSkipped = long.TryParse(parts[2], out var skipped) ? skipped : 0;
-                    result.FilesFailed = long.TryParse(parts[4], out var failed) ? failed : 0;
-                }
-            }
-            catch
-            {
-                // Ignore parsing errors
+                result.TotalFiles = long.TryParse(parts[0], out var total) ? total : 0;
+                result.FilesCopied = long.TryParse(parts[1], out var copied) ? copied : 0;
+                result.FilesSkipped = long.TryParse(parts[2], out var skipped) ? skipped : 0;
+                result.FilesFailed = long.TryParse(parts[4], out var failed) ? failed : 0;
             }
         }
 
@@ -329,19 +340,12 @@ namespace RobocopyGUI.Services
         /// </summary>
         private void ParseDirLine(string line, CopyResult result)
         {
-            try
+            var parts = ParseStatisticsLine(line, "Dirs :");
+            if (parts.Length >= 5)
             {
-                var parts = line.Replace("Dirs :", "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 5)
-                {
-                    result.TotalDirectories = long.TryParse(parts[0], out var total) ? total : 0;
-                    result.DirectoriesCopied = long.TryParse(parts[1], out var copied) ? copied : 0;
-                    result.DirectoriesFailed = long.TryParse(parts[4], out var failed) ? failed : 0;
-                }
-            }
-            catch
-            {
-                // Ignore parsing errors
+                result.TotalDirectories = long.TryParse(parts[0], out var total) ? total : 0;
+                result.DirectoriesCopied = long.TryParse(parts[1], out var copied) ? copied : 0;
+                result.DirectoriesFailed = long.TryParse(parts[4], out var failed) ? failed : 0;
             }
         }
 
@@ -350,21 +354,14 @@ namespace RobocopyGUI.Services
         /// </summary>
         private void ParseBytesLine(string line, CopyResult result)
         {
-            try
+            var parts = ParseStatisticsLine(line, "Bytes :");
+            if (parts.Length >= 2)
             {
-                var parts = line.Replace("Bytes :", "").Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length >= 2)
+                // Try to parse bytes copied (second column)
+                if (long.TryParse(parts[1], out var bytes))
                 {
-                    // Try to parse bytes copied (second column)
-                    if (long.TryParse(parts[1], out var bytes))
-                    {
-                        result.BytesCopied = bytes;
-                    }
+                    result.BytesCopied = bytes;
                 }
-            }
-            catch
-            {
-                // Ignore parsing errors
             }
         }
 

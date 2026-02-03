@@ -19,6 +19,13 @@ namespace RobocopyGUI
         private readonly LoggingService _loggingService;
         private bool _isRunning;
 
+        // Cached brushes for status indicator to avoid creating new instances
+        private static readonly SolidColorBrush ReadyBrush = new(Color.FromRgb(158, 158, 158));
+        private static readonly SolidColorBrush RunningBrush = new(Color.FromRgb(33, 150, 243));
+        private static readonly SolidColorBrush SuccessBrush = new(Color.FromRgb(76, 175, 80));
+        private static readonly SolidColorBrush WarningBrush = new(Color.FromRgb(255, 193, 7));
+        private static readonly SolidColorBrush ErrorBrush = new(Color.FromRgb(244, 67, 54));
+
         /// <summary>
         /// Initializes a new instance of the MainWindow class.
         /// </summary>
@@ -522,12 +529,12 @@ namespace RobocopyGUI
             StatusText.Text = text;
             StatusIndicator.Fill = status switch
             {
-                StatusType.Ready => new SolidColorBrush(Color.FromRgb(158, 158, 158)),
-                StatusType.Running => new SolidColorBrush(Color.FromRgb(33, 150, 243)),
-                StatusType.Success => new SolidColorBrush(Color.FromRgb(76, 175, 80)),
-                StatusType.Warning => new SolidColorBrush(Color.FromRgb(255, 193, 7)),
-                StatusType.Error => new SolidColorBrush(Color.FromRgb(244, 67, 54)),
-                _ => new SolidColorBrush(Color.FromRgb(158, 158, 158))
+                StatusType.Ready => ReadyBrush,
+                StatusType.Running => RunningBrush,
+                StatusType.Success => SuccessBrush,
+                StatusType.Warning => WarningBrush,
+                StatusType.Error => ErrorBrush,
+                _ => ReadyBrush
             };
         }
 
