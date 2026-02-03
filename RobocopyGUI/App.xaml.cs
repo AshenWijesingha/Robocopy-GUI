@@ -1,11 +1,13 @@
 using System.Windows;
 
+using MessageBox = System.Windows.MessageBox;
+
 namespace RobocopyGUI
 {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         /// <summary>
         /// Called when the application starts.

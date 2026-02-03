@@ -3,10 +3,19 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.Win32;
 using RobocopyGUI.Models;
 using RobocopyGUI.Services;
+
+// Resolve WinForms vs WPF ambiguity
+using MessageBox = System.Windows.MessageBox;
+using Clipboard = System.Windows.Clipboard;
+using DataFormats = System.Windows.DataFormats;
+using DragDropEffects = System.Windows.DragDropEffects;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using Color = System.Windows.Media.Color;
 
 namespace RobocopyGUI
 {
@@ -49,7 +58,124 @@ namespace RobocopyGUI
             _loggingService.Info("Robocopy GUI started");
             AppendLog("Welcome to Robocopy GUI!", LogType.Info);
             AppendLog("Select source and destination folders to begin.", LogType.Info);
+            AppendLog("Press F1 at any time for help.", LogType.Info);
         }
+
+        #region Keyboard Shortcuts
+
+        /// <summary>
+        /// Handles keyboard shortcuts for the window.
+        /// </summary>
+        private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Ctrl+Enter - Start copy
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (StartButton.IsEnabled)
+                {
+                    StartButton_Click(sender, e);
+                }
+                e.Handled = true;
+            }
+            // Escape - Stop copy
+            else if (e.Key == Key.Escape)
+            {
+                if (StopButton.IsEnabled)
+                {
+                    StopButton_Click(sender, e);
+                }
+                e.Handled = true;
+            }
+            // F1 - Open help
+            else if (e.Key == Key.F1)
+            {
+                UserGuide_Click(sender, e);
+                e.Handled = true;
+            }
+            // Ctrl+S - Save profile
+            else if (e.Key == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                SaveProfile_Click(sender, e);
+                e.Handled = true;
+            }
+            // Ctrl+O - Load profile
+            else if (e.Key == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                LoadProfile_Click(sender, e);
+                e.Handled = true;
+            }
+            // Ctrl+L - Clear log
+            else if (e.Key == Key.L && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ClearLog_Click(sender, e);
+                e.Handled = true;
+            }
+        }
+
+        #endregion
+
+        #region Menu Event Handlers
+
+        /// <summary>
+        /// Handles the Exit menu item click.
+        /// </summary>
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        /// <summary>
+        /// Handles the User Guide menu item click.
+        /// </summary>
+        private void UserGuide_Click(object sender, RoutedEventArgs e)
+        {
+            var helpWindow = new HelpWindow
+            {
+                Owner = this
+            };
+            helpWindow.NavigateToSection("QuickStart");
+            helpWindow.ShowDialog();
+        }
+
+        /// <summary>
+        /// Handles the Quick Start menu item click.
+        /// </summary>
+        private void QuickStart_Click(object sender, RoutedEventArgs e)
+        {
+            var helpWindow = new HelpWindow
+            {
+                Owner = this
+            };
+            helpWindow.NavigateToSection("QuickStart");
+            helpWindow.ShowDialog();
+        }
+
+        /// <summary>
+        /// Handles the Keyboard Shortcuts menu item click.
+        /// </summary>
+        private void KeyboardShortcuts_Click(object sender, RoutedEventArgs e)
+        {
+            var helpWindow = new HelpWindow
+            {
+                Owner = this
+            };
+            helpWindow.NavigateToSection("Shortcuts");
+            helpWindow.ShowDialog();
+        }
+
+        /// <summary>
+        /// Handles the About menu item click.
+        /// </summary>
+        private void About_Click(object sender, RoutedEventArgs e)
+        {
+            var aboutWindow = new AboutWindow
+            {
+                Owner = this
+            };
+            aboutWindow.ShowDialog();
+        }
+
+        #endregion
 
         #region Event Handlers
 
@@ -96,7 +222,7 @@ namespace RobocopyGUI
         /// <summary>
         /// Handles drag and drop for source path.
         /// </summary>
-        private void SourcePath_Drop(object sender, DragEventArgs e)
+        private void SourcePath_Drop(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -112,7 +238,7 @@ namespace RobocopyGUI
         /// <summary>
         /// Handles drag and drop for destination path.
         /// </summary>
-        private void DestinationPath_Drop(object sender, DragEventArgs e)
+        private void DestinationPath_Drop(object sender, System.Windows.DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
             {
@@ -128,7 +254,7 @@ namespace RobocopyGUI
         /// <summary>
         /// Handles drag over for text boxes.
         /// </summary>
-        private void TextBox_PreviewDragOver(object sender, DragEventArgs e)
+        private void TextBox_PreviewDragOver(object sender, System.Windows.DragEventArgs e)
         {
             e.Handled = true;
             e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) 
@@ -410,7 +536,7 @@ namespace RobocopyGUI
                 };
             }
 
-            return new CopyOptions
+            var options = new CopyOptions
             {
                 SourcePath = SourcePathTextBox.Text,
                 DestinationPath = DestinationPathTextBox.Text,
@@ -425,6 +551,36 @@ namespace RobocopyGUI
                 VerboseOutput = VerboseOutputCheckBox.IsChecked ?? false,
                 CustomParameters = CustomParametersTextBox.Text
             };
+
+            // Parse file exclusion patterns
+            if (!string.IsNullOrWhiteSpace(ExcludeFilesTextBox.Text))
+            {
+                var patterns = ExcludeFilesTextBox.Text.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var pattern in patterns)
+                {
+                    var trimmed = pattern.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                    {
+                        options.ExcludePatterns.Add(trimmed);
+                    }
+                }
+            }
+
+            // Parse directory exclusion patterns
+            if (!string.IsNullOrWhiteSpace(ExcludeDirectoriesTextBox.Text))
+            {
+                var directories = ExcludeDirectoriesTextBox.Text.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var dir in directories)
+                {
+                    var trimmed = dir.Trim();
+                    if (!string.IsNullOrEmpty(trimmed))
+                    {
+                        options.ExcludeDirectories.Add(trimmed);
+                    }
+                }
+            }
+
+            return options;
         }
 
         /// <summary>
@@ -458,6 +614,10 @@ namespace RobocopyGUI
             RestartableModeCheckBox.IsChecked = options.RestartableMode;
             VerboseOutputCheckBox.IsChecked = options.VerboseOutput;
             CustomParametersTextBox.Text = options.CustomParameters;
+
+            // Restore exclusion patterns
+            ExcludeFilesTextBox.Text = string.Join("; ", options.ExcludePatterns);
+            ExcludeDirectoriesTextBox.Text = string.Join("; ", options.ExcludeDirectories);
 
             UpdateCommandPreview();
         }
@@ -535,6 +695,17 @@ namespace RobocopyGUI
                 StatusType.Warning => WarningBrush,
                 StatusType.Error => ErrorBrush,
                 _ => ReadyBrush
+            };
+
+            // Update status bar text
+            StatusBarText.Text = status switch
+            {
+                StatusType.Ready => "Ready • Press F1 for help",
+                StatusType.Running => "Copy operation in progress...",
+                StatusType.Success => "Operation completed successfully",
+                StatusType.Warning => "Operation completed with warnings",
+                StatusType.Error => "Operation completed with errors",
+                _ => "Ready • Press F1 for help"
             };
         }
 
