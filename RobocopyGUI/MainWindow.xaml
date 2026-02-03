@@ -2,28 +2,101 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Robocopy GUI" 
-        Height="800" 
+        Height="850" 
         Width="1000"
-        MinHeight="600"
+        MinHeight="650"
         MinWidth="800"
         Background="{StaticResource BackgroundColor}"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        KeyDown="Window_KeyDown">
 
-    <Grid Margin="20">
+    <Window.InputBindings>
+        <KeyBinding Key="Enter" Modifiers="Control" Command="{x:Static ApplicationCommands.NotACommand}" />
+        <KeyBinding Key="Escape" Command="{x:Static ApplicationCommands.NotACommand}" />
+        <KeyBinding Key="F1" Command="{x:Static ApplicationCommands.NotACommand}" />
+        <KeyBinding Key="S" Modifiers="Control" Command="{x:Static ApplicationCommands.NotACommand}" />
+        <KeyBinding Key="O" Modifiers="Control" Command="{x:Static ApplicationCommands.NotACommand}" />
+        <KeyBinding Key="L" Modifiers="Control" Command="{x:Static ApplicationCommands.NotACommand}" />
+    </Window.InputBindings>
+
+    <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0" Background="{StaticResource CardBackgroundColor}" Padding="5,3">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Save Profile" 
+                          Click="SaveProfile_Click" 
+                          InputGestureText="Ctrl+S"
+                          ToolTip="Save current settings as a profile for later use"/>
+                <MenuItem Header="_Load Profile" 
+                          Click="LoadProfile_Click" 
+                          InputGestureText="Ctrl+O"
+                          ToolTip="Load a previously saved profile"/>
+                <Separator/>
+                <MenuItem Header="E_xport Log..." 
+                          Click="ExportLog_Click"
+                          ToolTip="Export the current log to a file"/>
+                <Separator/>
+                <MenuItem Header="E_xit" 
+                          Click="ExitMenuItem_Click" 
+                          InputGestureText="Alt+F4"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Copy Command" 
+                          Click="CopyCommand_Click" 
+                          InputGestureText="Ctrl+C"
+                          ToolTip="Copy the Robocopy command to clipboard"/>
+                <MenuItem Header="C_lear Log" 
+                          Click="ClearLog_Click" 
+                          InputGestureText="Ctrl+L"
+                          ToolTip="Clear the log output"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_User Guide" 
+                          Click="UserGuide_Click" 
+                          InputGestureText="F1"
+                          ToolTip="Open the comprehensive user guide"/>
+                <MenuItem Header="_Quick Start" 
+                          Click="QuickStart_Click"
+                          ToolTip="View quick start instructions"/>
+                <MenuItem Header="_Keyboard Shortcuts" 
+                          Click="KeyboardShortcuts_Click"
+                          ToolTip="View all keyboard shortcuts"/>
+                <Separator/>
+                <MenuItem Header="_About Robocopy GUI" 
+                          Click="About_Click"
+                          ToolTip="About this application"/>
+            </MenuItem>
+        </Menu>
+
         <!-- Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Robocopy GUI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
-            <TextBlock Text="A modern interface for Windows Robocopy utility" Foreground="{StaticResource TextSecondaryColor}" FontSize="14"/>
+        <StackPanel Grid.Row="1" Margin="20,15,20,15">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="Robocopy GUI" FontSize="28" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                    <TextBlock Text="A modern interface for Windows Robocopy utility • Press F1 for Help" Foreground="{StaticResource TextSecondaryColor}" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="?" 
+                            Width="30" 
+                            Height="30" 
+                            FontWeight="Bold"
+                            Style="{StaticResource SecondaryButton}"
+                            Click="UserGuide_Click"
+                            ToolTip="Open User Guide (F1)"/>
+                </StackPanel>
+            </Grid>
         </StackPanel>
 
         <!-- Main Content -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2" Margin="20,0,20,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="350"/>
@@ -38,7 +111,7 @@
                             <TextBlock Text="📁 Folders" Style="{StaticResource SectionHeader}"/>
                             
                             <!-- Source Path -->
-                            <Label Content="Source Folder"/>
+                            <Label Content="Source Folder" ToolTip="The folder you want to copy files FROM"/>
                             <Grid Margin="0,0,0,15">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -49,16 +122,18 @@
                                          IsReadOnly="True"
                                          AllowDrop="True"
                                          PreviewDragOver="TextBox_PreviewDragOver"
-                                         Drop="SourcePath_Drop"/>
+                                         Drop="SourcePath_Drop"
+                                         ToolTip="Select the source folder using Browse or drag and drop a folder here"/>
                                 <Button Grid.Column="1" 
                                         Content="Browse" 
                                         Style="{StaticResource SecondaryButton}" 
                                         Margin="10,0,0,0"
-                                        Click="BrowseSource_Click"/>
+                                        Click="BrowseSource_Click"
+                                        ToolTip="Click to select the source folder"/>
                             </Grid>
 
                             <!-- Destination Path -->
-                            <Label Content="Destination Folder"/>
+                            <Label Content="Destination Folder" ToolTip="The folder where files will be copied TO"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -69,12 +144,14 @@
                                          IsReadOnly="True"
                                          AllowDrop="True"
                                          PreviewDragOver="TextBox_PreviewDragOver"
-                                         Drop="DestinationPath_Drop"/>
+                                         Drop="DestinationPath_Drop"
+                                         ToolTip="Select the destination folder using Browse or drag and drop a folder here"/>
                                 <Button Grid.Column="1" 
                                         Content="Browse" 
                                         Style="{StaticResource SecondaryButton}" 
                                         Margin="10,0,0,0"
-                                        Click="BrowseDestination_Click"/>
+                                        Click="BrowseDestination_Click"
+                                        ToolTip="Click to select the destination folder"/>
                             </Grid>
                         </StackPanel>
                     </Border>
@@ -84,12 +161,13 @@
                         <StackPanel>
                             <TextBlock Text="⚙️ Copy Mode" Style="{StaticResource SectionHeader}"/>
                             
-                            <Label Content="Select a preset mode"/>
+                            <Label Content="Select a preset mode" ToolTip="Choose how files should be copied"/>
                             <ComboBox x:Name="CopyModeComboBox" 
                                       SelectionChanged="CopyModeComboBox_SelectionChanged"
-                                      Margin="0,0,0,15">
-                                <ComboBoxItem Content="Backup - Copy new and changed files" Tag="Backup" IsSelected="True"/>
-                                <ComboBoxItem Content="Mirror - Exact copy (deletes extras)" Tag="Mirror"/>
+                                      Margin="0,0,0,15"
+                                      ToolTip="Select the copy mode that best fits your needs">
+                                <ComboBoxItem Content="Backup - Copy new and changed files (safest)" Tag="Backup" IsSelected="True"/>
+                                <ComboBoxItem Content="Mirror - Exact copy (deletes extras in destination)" Tag="Mirror"/>
                                 <ComboBoxItem Content="Sync - Synchronize folders" Tag="Sync"/>
                                 <ComboBoxItem Content="Move - Move files (delete from source)" Tag="Move"/>
                             </ComboBox>
@@ -126,18 +204,24 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                                    <Label Content="Threads (1-128)"/>
-                                    <TextBox x:Name="ThreadCountTextBox" Text="8"/>
+                                    <Label Content="Threads (1-128)" ToolTip="Number of simultaneous file copy operations"/>
+                                    <TextBox x:Name="ThreadCountTextBox" 
+                                             Text="8"
+                                             ToolTip="More threads = faster for many small files. Fewer threads = better for large files. Default: 8"/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="1" Margin="5,0,5,0">
-                                    <Label Content="Retry Count"/>
-                                    <TextBox x:Name="RetryCountTextBox" Text="3"/>
+                                    <Label Content="Retry Count" ToolTip="How many times to retry if a file copy fails"/>
+                                    <TextBox x:Name="RetryCountTextBox" 
+                                             Text="3"
+                                             ToolTip="Number of retry attempts for failed files. Use higher values for network copies."/>
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2" Margin="10,0,0,0">
-                                    <Label Content="Wait Time (sec)"/>
-                                    <TextBox x:Name="RetryWaitTextBox" Text="5"/>
+                                    <Label Content="Wait Time (sec)" ToolTip="Seconds to wait between retry attempts"/>
+                                    <TextBox x:Name="RetryWaitTextBox" 
+                                             Text="5"
+                                             ToolTip="Seconds to wait between retries. Longer waits help with network issues."/>
                                 </StackPanel>
                             </Grid>
 
@@ -151,31 +235,36 @@
 
                     <!-- Advanced Options -->
                     <Border Style="{StaticResource CardBorder}">
-                        <Expander Header="Advanced Options" IsExpanded="False">
+                        <Expander Header="Advanced Options" IsExpanded="False" ToolTip="Click to show/hide advanced configuration options">
                             <StackPanel Margin="0,15,0,0">
                                 <CheckBox x:Name="CopySubdirectoriesCheckBox" 
                                           Content="Copy subdirectories" 
                                           IsChecked="True" 
-                                          Margin="0,0,0,10"/>
+                                          Margin="0,0,0,10"
+                                          ToolTip="When enabled, copies all folders and subfolders, not just files in the root"/>
                                 <CheckBox x:Name="IncludeEmptyDirsCheckBox" 
                                           Content="Include empty directories" 
                                           IsChecked="True" 
-                                          Margin="0,0,0,10"/>
+                                          Margin="0,0,0,10"
+                                          ToolTip="When enabled, creates empty folders in destination even if they have no files"/>
                                 <CheckBox x:Name="CopyAttributesCheckBox" 
                                           Content="Copy file attributes" 
                                           IsChecked="True" 
-                                          Margin="0,0,0,10"/>
+                                          Margin="0,0,0,10"
+                                          ToolTip="Preserves file attributes (read-only, hidden, etc.) and timestamps"/>
                                 <CheckBox x:Name="RestartableModeCheckBox" 
                                           Content="Restartable mode (for interrupted transfers)" 
-                                          Margin="0,0,0,10"/>
+                                          Margin="0,0,0,10"
+                                          ToolTip="Allows interrupted transfers to be resumed. Recommended for large files over networks."/>
                                 <CheckBox x:Name="VerboseOutputCheckBox" 
                                           Content="Verbose output" 
-                                          Margin="0,0,0,10"/>
+                                          Margin="0,0,0,10"
+                                          ToolTip="Shows detailed information for each file. Useful for troubleshooting."/>
 
-                                <Label Content="Custom Parameters" Margin="0,10,0,0"/>
+                                <Label Content="Custom Parameters" Margin="0,10,0,0" ToolTip="Additional Robocopy command-line parameters"/>
                                 <TextBox x:Name="CustomParametersTextBox" 
                                          Text="" 
-                                         ToolTip="Add additional Robocopy parameters"/>
+                                         ToolTip="Enter additional Robocopy parameters here (for advanced users). Example: /XF *.tmp /XD Temp"/>
                             </StackPanel>
                         </Expander>
                     </Border>
@@ -192,13 +281,15 @@
                                          BorderThickness="0"
                                          FontFamily="Consolas"
                                          FontSize="12"
-                                         Foreground="#37474F"/>
+                                         Foreground="#37474F"
+                                         ToolTip="This is the actual Robocopy command that will be executed"/>
                             </Border>
-                            <Button Content="Copy Command" 
+                            <Button Content="📋 Copy Command" 
                                     Style="{StaticResource SecondaryButton}" 
                                     HorizontalAlignment="Right"
                                     Margin="0,10,0,0"
-                                    Click="CopyCommand_Click"/>
+                                    Click="CopyCommand_Click"
+                                    ToolTip="Copy this command to clipboard (Ctrl+C)"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -228,7 +319,8 @@
                                      Height="12" 
                                      Fill="#9E9E9E"
                                      Margin="0,0,10,0"
-                                     VerticalAlignment="Center"/>
+                                     VerticalAlignment="Center"
+                                     ToolTip="Current operation status indicator"/>
                             <TextBlock x:Name="StatusText" 
                                        Grid.Column="1" 
                                        Text="Ready" 
@@ -240,7 +332,8 @@
                                      Height="10" 
                                      Margin="0,15,0,0"
                                      Value="0"
-                                     Maximum="100"/>
+                                     Maximum="100"
+                                     ToolTip="Overall progress of the copy operation"/>
 
                         <TextBlock x:Name="ProgressText" 
                                    Text="" 
@@ -265,7 +358,8 @@
                                     Style="{StaticResource SecondaryButton}" 
                                     HorizontalAlignment="Right"
                                     Padding="10,5"
-                                    Click="ClearLog_Click"/>
+                                    Click="ClearLog_Click"
+                                    ToolTip="Clear the log output (Ctrl+L)"/>
                         </Grid>
 
                         <Border Grid.Row="1" Background="#263238" CornerRadius="5">
@@ -279,16 +373,18 @@
                                          FontFamily="Consolas"
                                          FontSize="12"
                                          Padding="10"
-                                         VerticalScrollBarVisibility="Disabled"/>
+                                         VerticalScrollBarVisibility="Disabled"
+                                         ToolTip="Real-time output from the Robocopy operation"/>
                             </ScrollViewer>
                         </Border>
 
                         <Button Grid.Row="2" 
-                                Content="Export Log" 
+                                Content="📤 Export Log" 
                                 Style="{StaticResource SecondaryButton}" 
                                 HorizontalAlignment="Right"
                                 Margin="0,10,0,0"
-                                Click="ExportLog_Click"/>
+                                Click="ExportLog_Click"
+                                ToolTip="Save the log output to a file for later review"/>
                     </Grid>
                 </Border>
 
@@ -300,22 +396,24 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Button Grid.Column="0" 
-                                Content="Save Profile" 
+                                Content="💾 Save Profile" 
                                 Style="{StaticResource SecondaryButton}"
                                 Margin="0,0,5,0"
-                                Click="SaveProfile_Click"/>
+                                Click="SaveProfile_Click"
+                                ToolTip="Save current settings as a profile (Ctrl+S)"/>
                         <Button Grid.Column="1" 
-                                Content="Load Profile" 
+                                Content="📂 Load Profile" 
                                 Style="{StaticResource SecondaryButton}"
                                 Margin="5,0,0,0"
-                                Click="LoadProfile_Click"/>
+                                Click="LoadProfile_Click"
+                                ToolTip="Load a previously saved profile (Ctrl+O)"/>
                     </Grid>
                 </Border>
             </Grid>
         </Grid>
 
         <!-- Bottom Actions -->
-        <Grid Grid.Row="2" Margin="0,20,0,0">
+        <Grid Grid.Row="3" Margin="20,15,20,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -329,19 +427,32 @@
 
             <Button x:Name="StopButton"
                     Grid.Column="1" 
-                    Content="Stop" 
+                    Content="⏹️ Stop" 
                     Style="{StaticResource DangerButton}"
                     Width="120"
                     Margin="0,0,15,0"
                     IsEnabled="False"
-                    Click="StopButton_Click"/>
+                    Click="StopButton_Click"
+                    ToolTip="Stop the current copy operation (Escape)"/>
 
             <Button x:Name="StartButton"
                     Grid.Column="2" 
-                    Content="Start Copy" 
+                    Content="▶️ Start Copy" 
                     Style="{StaticResource PrimaryButton}"
                     Width="150"
-                    Click="StartButton_Click"/>
+                    Click="StartButton_Click"
+                    ToolTip="Start the copy operation (Ctrl+Enter)"/>
         </Grid>
+
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="4" Background="{StaticResource CardBackgroundColor}" BorderBrush="{StaticResource BorderColor}" BorderThickness="0,1,0,0">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusBarText" Text="Ready • Press F1 for help" Foreground="{StaticResource TextSecondaryColor}" FontSize="12"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusBarShortcuts" Text="Ctrl+Enter: Start | Escape: Stop | F1: Help" Foreground="{StaticResource TextSecondaryColor}" FontSize="12"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
