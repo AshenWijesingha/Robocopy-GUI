@@ -3,7 +3,7 @@
 A modern, user-friendly graphical interface for Windows Robocopy utility built with .NET Windows Forms/WPF.
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![.NET](https://img.shields.io/badge/.NET-6.0%2B-purple)
+![.NET](https://img.shields.io/badge/.NET-8.0%2B-purple)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -70,7 +70,7 @@ Robocopy GUI is a powerful, modern Windows desktop application that provides an 
 
 ### Minimum Requirements
 - **OS**: Windows 10 (version 1809 or later) / Windows 11
-- **Framework**: .NET 6.0 Runtime or later
+- **Framework**: .NET 8.0 Runtime or later
 - **RAM**: 512 MB
 - **Disk Space**: 50 MB for installation
 - **Permissions**: Administrator rights (recommended for full functionality)
@@ -118,7 +118,7 @@ Before you begin, ensure you have the following installed:
      - .NET desktop development
      - Universal Windows Platform development (optional)
 
-2. **.NET 6.0 SDK or later**
+2. **.NET 8.0 SDK or later**
    - Download from: https://dotnet.microsoft.com/download
    - Verify installation: `dotnet --version`
 
@@ -191,15 +191,24 @@ dotnet run --project RobocopyGUI/RobocopyGUI.csproj
 ### Creating a Standalone Executable
 
 ```bash
+# Clean previous build artifacts first (important to avoid "Access Denied" errors)
+dotnet clean -c Release
+
 # Publish as self-contained executable (includes .NET runtime)
-dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+# The project is pre-configured with single-file publishing settings
+dotnet publish -c Release -r win-x64
+
+# Or explicitly specify all options:
+dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 
 # Publish framework-dependent (requires .NET runtime installed)
-dotnet publish -c Release -r win-x64 --self-contained false
+dotnet publish -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false
 
 # Output location
-# bin/Release/net6.0/win-x64/publish/
+# RobocopyGUI/bin/Release/net8.0-windows/win-x64/publish/
 ```
+
+> **Note:** If you encounter "Access to the path is denied" errors, see the [BUILD_GUIDE.md](BUILD_GUIDE.md) for troubleshooting steps.
 
 ### Creating an Installer
 
